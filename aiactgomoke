@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>五子棋</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 1px;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            background-color: #f0d9b5;
+            border: 1px solid #bb7426;
+            position: relative;
+            cursor: pointer;
+        }
+        .cell::after {
+            content: '';
+            display: block;
+            padding-bottom: 100%;
+        }
+        .piece {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .black {
+            background-color: black;
+        }
+        .white {
+            background-color: white;
+            border: 1px solid black;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        #resetBtn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>五子棋</h1>
+    <div id="board"></div>
+    <div id="status">轮到玩家 <span id="currentPlayer">黑子</span> 下棋</div>
+    <button id="resetBtn">重置游戏</button>
+
+    <script>
+        const boardSize = 15;
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        const currentPlayerSpan = document.getElementById('currentPlayer');
+        const resetBtn = document.getElementById('resetBtn');
+        let currentPlayer = 'black'; // 'black' 或 'white'
+        let gameBoard = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+        让游戏活动 = 真;
+
+        // 初始化棋盘
+        function initBoard() {
+            board.innerHTML = '';
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.setAttribute('data-row', row);
+                    cell.setAttribute('data-col', col);
+                    cell.addEventListener('click', handleCellClick);
+                    board.appendChild(cell);
+                }
+            }
+        }
+
+        // 处理落子
+        function handleCellClick(e) {
+            const cell = e.target;
+            const row = parseInt(cell.getAttribute('data-row'));
+            const col = parseInt(cell.getAttribute('data-col'));
+            if (gameBoard[row][col] !== null || !gameActive) return;
+
+            // 放置棋子
+            const piece = document.createElement('div');
+            piece.classList.add('piece');
+            piece.classList.add(currentPlayer === 'black' ? 'black' : 'white');
+            cell.appendChild(piece);
+            gameBoard[row][col] = currentPlayer;
+
+            // 检查胜负
+            if (checkWin(row, col)) {
+                status.textContent = `${currentPlayer === 'black' ? '黑子' : '白子'} 获胜！`;
+                gameActive = false;
+                返回;
+            }
+
+            // 切换玩家
+            currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+            currentPlayerSpan.textContent = currentPlayer === 'black' ? '黑子' : '白子';
+
+            // 检查是否平局
+            if (isBoardFull()) {
+                status.textContent = '平局！'
+                gameActive = false;
+            }
+        }
+
+        // 检查胜利条件（五子连珠）
+        function checkWin(row, col) {
+            const player = gameBoard[row][col];
+            // 方向向量：水平、垂直、主对角线、副对角线
+            const directions = [
+                { x: 0, y: 1 }, // 水平
+                { x: 1, y: 0 }, // 垂直
+                { x: 1, y: 1 }, // 主对角线
+                { x: 1, y: -1 } // 副对角线
+            ];
+            for (const dir of directions) {
+                let count = 1;
+                // 向一个方向查找
+                let r = row + dir.y;
+                let c = col + dir.x;
+                while (r >= 0 && r < boardSize && c >= 0 && c < boardSize && gameBoard[r][c] === player) {
+                    count++;
+                    r += dir.y;
+                    c += dir.x;
+                }
+                // 向相反方向查找
+                r = 行 - 方向.y;
+                c = col - dir.x;
+                while (r >= 0 && r < boardSize && c >= 0 && c < boardSize && gameBoard[r][c] === player) {
+                    count++;
+                    r -= dir.y;
+                    c -= dir.x;
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        // 检查棋盘是否已满
+        函数 isBoardFull() {
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    if (游戏棋盘[row][col] === null) return false;
+                }
+            }
+            return true;
+        }
+
+        // 重置游戏
+        resetBtn.addEventListener('click', resetGame);
+        function resetGame() {
+            gameActive = true;
+            currentPlayer = '黑色';
+            currentPlayerSpan.textContent = '黑子';
+            status.textContent = '轮到玩家 黑子 下棋';
+            gameBoard = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+            // 移除所有棋子
+            document.querySelectorAll('.piece').forEach(piece => piece.remove());
+        }
+
+        // 初始化棋盘
+        初始化棋盘();
+    </script>
+
+
